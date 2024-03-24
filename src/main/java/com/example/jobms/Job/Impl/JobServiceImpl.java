@@ -1,4 +1,7 @@
 package com.example.jobms.Job.Impl;
+
+import com.example.companyms.Company.Company; //external class
+import com.example.jobms.Job.DTO.JobWithCompanyDTO;
 import com.example.jobms.Job.Job;
 import com.example.jobms.Job.JobRepository;
 import com.example.jobms.Job.JobService;
@@ -6,9 +9,13 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class JobServiceImpl implements JobService {
@@ -22,8 +29,28 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public List<Job> findAll() {
-        return jobRepository.findAll();
+    public List<JobWithCompanyDTO> findAll() {
+        List<Job> jobs = jobRepository.findAll(); // find all the jobs from interface
+        List<JobWithCompanyDTO> jobWithCompanyDTOS = new ArrayList<>();
+        //map is a operation that is applied to stream, method takes function as an argument(to each element of stream)
+        return jobs.stream().map(this::convertToDTO).
+                collect(Collectors.toList());
+        //make use of stream convert the list into a stream - elements that can be processed in a pipeline
+    }
+
+    private JobWithCompanyDTO convertToDTO(Job job) {
+
+        JobWithCompanyDTO jobWithCompanyDTO = new JobWithCompanyDTO();
+        jobWithCompanyDTO.setJob(job);
+        RestTemplate restTemplate = new RestTemplate();
+        Company company = restTemplate.getForObject("http://localhost:8081/companies/" + job.getCompanyId(),
+                Company.class);
+        // calling the company objected here to map it to the job - for every job we are getting the company id
+        // - give company for this id and map it in DTO
+        jobWithCompanyDTO.setCompany(company);
+
+
+        return jobWithCompanyDTO;
     }
 
     @Override
@@ -54,6 +81,7 @@ public class JobServiceImpl implements JobService {
         }
     }
 
+
     @Override
     public boolean updateJob(int id, @RequestBody Job updatedJob) {
         Optional<Job> jobOptional = jobRepository.findById(id);
@@ -79,7 +107,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public boolean patchJob(int id, @RequestBody Job patchJob) {
+    public boolean patchJob(int id, Job patchJob) {
         Optional<Job> jobPatchOptional = jobRepository.findById(id);
         if (jobPatchOptional.isPresent()) {
             Job existingJob = jobPatchOptional.get();
@@ -98,7 +126,7 @@ public class JobServiceImpl implements JobService {
             if (patchJob.getLocation() != null) {
                 existingJob.setLocation(patchJob.getLocation());
             }
-            if(patchJob.getCompanyId()!= 0){
+            if (patchJob.getCompanyId() != 0) {
                 existingJob.setCompanyId(patchJob.getCompanyId());
             }
             jobRepository.save(existingJob);

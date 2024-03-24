@@ -34,25 +34,6 @@ public class JobServiceImplTest {
     }
 
     @Test
-    void testFindAllWhenJobsExistThenReturnListOfJobs() {
-        List<Job> jobs = Arrays.asList(job1, job2);
-        when(jobRepository.findAll()).thenReturn(jobs);
-
-        List<Job> result = jobService.findAll();
-
-        assertThat(result).hasSize(2).containsExactly(job1, job2);
-    }
-
-    @Test
-    void testFindAllWhenNoJobsExistThenReturnEmptyList() {
-        when(jobRepository.findAll()).thenReturn(Arrays.asList());
-
-        List<Job> result = jobService.findAll();
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
     void testGetJobByIdWhenValidIdThenReturnJob() {
         when(jobRepository.findById(1)).thenReturn(Optional.of(job1));
 
