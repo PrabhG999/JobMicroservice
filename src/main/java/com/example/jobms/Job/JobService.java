@@ -1,5 +1,6 @@
 package com.example.jobms.Job;
 
+import com.example.jobms.Job.DTO.JobWithCompanyDTO;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
@@ -7,7 +8,7 @@ import java.util.List;
 
 public interface JobService {
 
-    List<Job> findAll();
+    List<JobWithCompanyDTO> findAll();
 
     Job getJobById(int id);
 
